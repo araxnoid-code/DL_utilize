@@ -13,6 +13,7 @@ name = "dl_toolkit_project"
 version = "0.0.1"
 dependencies = [
  "ndarray",
+ "num-traits",
 ]
 
 [[package]]
