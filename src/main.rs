@@ -1,102 +1,188 @@
-use std::{
-    fmt::Display,
-    marker::PhantomData,
-    ops::Add,
-    sync::atomic::{AtomicUsize, Ordering::Relaxed},
-};
+use std::{marker::PhantomData, ops::Add};
 
-use ndarray::{ArrayD, IxDyn, RawArrayView, RawArrayViewMut, s};
-use num_traits::Float;
+use ndarray::{ArrayD, ArrayViewD};
+use num_traits::Zero;
 
 fn main() {
-    let add_a = AddToolkit::<'_, f32, f32, f32>::new(&1., &2.);
-    let add_b = AddToolkit::new(&add_a, &3.);
-    let add_c = AddToolkit::new(&add_b, &4.);
-    let add_d = AddToolkit::new(&add_a, &add_b);
-    let add_e = AddToolkit::new(&add_c, &add_d);
+    let mut toolkit: Toolkit<f32, ArrayD<f32>, ArrayD<f32>> = Toolkit::new();
 
-    let mut cache = Vec::new();
-    let mut grad = Vec::new();
-    add_e.forward_flow(&mut cache, &mut grad);
-    //
-    println!("{:?}", cache);
+    let init_1 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
+    // let init_2 = toolkit.init_value(value)
 
-    *grad.get_mut(add_e.out_idx.load(Relaxed) - 1).unwrap() = 1.;
-    println!("{:?}", grad);
+    let add_flow_1 = toolkit.submit(AddTool::new(
+        &init_1,
+        &ArrayD::<f32>::ones(vec![2, 2]).view(),
+    ));
+
+    let add_flow_2 = toolkit.submit(AddTool::new(
+        &ArrayD::<f32>::ones(vec![2, 2]).view(),
+        &add_flow_1,
+    ));
+
+    let add_flow_3 = toolkit.submit(AddTool::new(&add_flow_1, &add_flow_2));
+
+    println!("{}", toolkit.values[add_flow_3.value_idx]);
 }
 
-trait DlFlow<Out> {
-    fn forward_flow(&self, cache: &mut Vec<Out>, grad: &mut Vec<Out>) -> usize;
+#[derive(Clone, Copy)]
+enum Label<F> {
+    Add(AddFlow<F>),
 }
 
-impl DlFlow<f32> for f32 {
-    fn forward_flow(&self, cache: &mut Vec<f32>, grad: &mut Vec<f32>) -> usize {
-        println!("step: {}", self);
-        cache.push(*self);
-        grad.push(0.);
-        cache.len() - 1
-    }
-
-    // fn backward_flow(&self, cache: &mut Vec<f32>, grad: &mut Vec<f32>) {}
-}
-
-struct AddToolkit<'a, Lhs, Rhs, Out>
-where
-    Lhs: DlFlow<Out>,
-    Rhs: DlFlow<Out>,
-{
+pub struct AddTool<'a, Lhs, Rhs> {
     lhs: &'a Lhs,
     rhs: &'a Rhs,
-    out_idx: AtomicUsize,
-    _phantom: PhantomData<Out>,
 }
 
-impl<'a, Lhs, Rhs, Out> AddToolkit<'a, Lhs, Rhs, Out>
-where
-    Lhs: DlFlow<Out>,
-    Rhs: DlFlow<Out>,
-{
-    pub fn new(lhs: &'a Lhs, rhs: &'a Rhs) -> AddToolkit<'a, Lhs, Rhs, Out> {
+impl<'a, Lhs, Rhs> AddTool<'a, Lhs, Rhs> {
+    pub fn new(lhs: &'a Lhs, rhs: &'a Rhs) -> AddTool<'a, Lhs, Rhs> {
+        Self { lhs, rhs }
+    }
+}
+
+struct InitFlow<F> {
+    value_idx: usize,
+    _phantom: PhantomData<F>,
+}
+
+impl<F> GetValue for InitFlow<F> {
+    type ReturnType = ArrayD<F>;
+    type ValueType = ArrayD<F>;
+    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType {
+        &values[self.value_idx]
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct AddFlow<F> {
+    value_idx: usize,
+    grad_idx: usize,
+    _phantom: PhantomData<F>,
+}
+
+impl<F> AddFlow<F> {
+    pub fn new(value_idx: usize, grad_idx: usize) -> AddFlow<F> {
         Self {
-            lhs,
-            rhs,
-            out_idx: AtomicUsize::new(0),
-            _phantom: PhantomData::default(),
+            value_idx,
+            grad_idx,
+            _phantom: Default::default(),
         }
     }
 }
 
-impl<'a, Lhs, Rhs, Out> DlFlow<Out> for AddToolkit<'a, Lhs, Rhs, Out>
+trait GetValue {
+    type ReturnType;
+    type ValueType;
+    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType;
+}
+
+impl<F> GetValue for ArrayD<F> {
+    type ReturnType = Self;
+    type ValueType = ArrayD<F>;
+    fn get_value<'a>(&'a self, _: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType {
+        self
+    }
+}
+
+impl<'b, F> GetValue for ArrayViewD<'b, F> {
+    type ReturnType = Self;
+    type ValueType = ArrayD<F>;
+    fn get_value<'a>(&'a self, _: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType {
+        self
+    }
+}
+
+impl<F> GetValue for AddFlow<F> {
+    type ValueType = ArrayD<F>;
+    type ReturnType = ArrayD<F>;
+    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType {
+        &values[self.value_idx]
+    }
+}
+
+impl<'t, Lhs, Rhs, F> ToolComponent<F, ArrayD<F>, AddFlow<F>> for AddTool<'t, Lhs, Rhs>
 where
-    Lhs: DlFlow<Out>,
-    Rhs: DlFlow<Out>,
-    for<'b> &'b Out: Add<&'b Out, Output = Out>,
-    Out: Display + Float,
+    Lhs: GetValue<ValueType = ArrayD<F>>,
+    Rhs: GetValue<ValueType = ArrayD<F>>,
+    for<'a> &'a Lhs::ReturnType: Add<&'a Rhs::ReturnType, Output = ArrayD<F>>,
 {
-    fn forward_flow(&self, cache: &mut Vec<Out>, grad: &mut Vec<Out>) -> usize {
-        let load = self.out_idx.load(Relaxed);
-        if load != 0 {
-            {
-                let out = cache.get(load - 1).unwrap();
-                println!("loaded step: {}", out)
-            }
+    fn tool_forward(&self, values: &Vec<ArrayD<F>>) -> ArrayD<F> {
+        let lhs = self.lhs.get_value(values);
+        let rhs = self.rhs.get_value(values);
+        lhs.add(rhs)
+    }
 
-            return load - 1;
+    fn shape(out: &ArrayD<F>) -> Vec<usize> {
+        out.shape().to_vec()
+    }
+
+    fn create_flow(value_idx: usize, grad_idx: usize) -> Label<F> {
+        Label::Add(AddFlow::new(value_idx, grad_idx))
+    }
+
+    fn copy_label_to_flow(label: Label<F>) -> AddFlow<F> {
+        match label {
+            Label::Add(add_flow) => add_flow,
         }
+    }
+}
 
-        let lhs_idx = self.lhs.forward_flow(cache, grad);
-        let rhs_idx = self.rhs.forward_flow(cache, grad);
-        let lhs = cache.get(lhs_idx).expect("Error Getting Lhs");
+trait ToolComponent<F, Out, FlowType> {
+    fn tool_forward(&self, values: &Vec<Out>) -> Out;
+    fn shape(out: &Out) -> Vec<usize>;
+    fn create_flow(value_idx: usize, grad_idx: usize) -> Label<F>;
+    fn copy_label_to_flow(label: Label<F>) -> FlowType;
+}
 
-        let rhs = cache.get(rhs_idx).expect("Error Getting Rhs");
+trait Gradient {
+    fn zeros(shape: Vec<usize>) -> Self;
+}
 
-        let out = lhs + rhs;
-        println!("step: {}", out);
-        cache.push(out);
-        grad.push(Out::zero());
-        let idx = cache.len();
-        self.out_idx.store(idx, Relaxed);
+impl<F> Gradient for ArrayD<F>
+where
+    F: Clone + Zero,
+{
+    fn zeros(shape: Vec<usize>) -> Self {
+        ArrayD::zeros(shape)
+    }
+}
 
-        idx - 1
+struct Toolkit<F, V, Grad> {
+    values: Vec<V>,
+    gradients: Vec<Grad>,
+    flows: Vec<Label<F>>,
+}
+
+impl<F, V, Grad> Toolkit<F, V, Grad> {
+    pub fn new() -> Toolkit<F, V, Grad> {
+        Self {
+            values: Vec::new(),
+            gradients: Vec::new(),
+            flows: Vec::new(),
+        }
+    }
+
+    pub fn init_value(&mut self, value: V) -> InitFlow<F> {
+        self.values.push(value);
+        InitFlow {
+            value_idx: self.values.len() - 1,
+            _phantom: Default::default(),
+        }
+    }
+
+    pub fn submit<C, FlowType>(&mut self, component: C) -> FlowType
+    where
+        F: Copy,
+        C: ToolComponent<F, V, FlowType>,
+        Grad: Gradient,
+    {
+        let value = component.tool_forward(&self.values);
+        let shape = C::shape(&value);
+        self.values.push(value);
+        self.gradients.push(Grad::zeros(shape));
+
+        let flow = C::create_flow(self.values.len() - 1, self.gradients.len() - 1);
+        self.flows.push(flow);
+        C::copy_label_to_flow(flow)
     }
 }
