@@ -1,5 +1,7 @@
 use std::marker::PhantomData;
 
+use num_traits::{Float, One};
+
 use crate::{CopyLabel, Gradient, ToolComponent, ToolFlow};
 
 pub struct Toolkit<V, Grad, Label> {
@@ -14,6 +16,31 @@ impl<V, Grad, Label> Toolkit<V, Grad, Label> {
         Flow: ToolFlow,
     {
         self.values.get(flow.get_value_idx())
+    }
+
+    pub fn grad_into_ones<Flow>(&mut self, flow: &Flow)
+    where
+        Flow: ToolFlow,
+        Grad: Gradient,
+        Grad::F: Float,
+    {
+        if let Some(grad_idx) = flow.get_gradient_idx() {
+            self.gradients[grad_idx]
+                .as_mut()
+                .expect("Error In Toolkit::grad_into_ones. Gradient is None")
+                .fill(One::one());
+        }
+    }
+
+    pub fn get_gradient<Flow>(&self, flow: &Flow) -> Option<&Grad>
+    where
+        Flow: ToolFlow,
+    {
+        if let Some(grad_idx) = flow.get_gradient_idx() {
+            self.gradients[grad_idx].as_ref()
+        } else {
+            None
+        }
     }
 
     pub fn submit<C, FlowType>(&mut self, component: C) -> FlowType
