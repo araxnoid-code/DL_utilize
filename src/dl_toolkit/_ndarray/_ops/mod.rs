@@ -9,3 +9,6 @@ pub use gradient::*;
 
 mod init;
 pub use init::*;
+
+mod label;
+pub use label::*;

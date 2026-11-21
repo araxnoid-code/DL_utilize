@@ -1,7 +1,9 @@
-use crate::{Gradient, InitFlow, ToolComponent, Toolkit};
+use std::{marker::PhantomData, ops::AddAssign};
 
-impl<F, V, Grad> Toolkit<F, V, Grad> {
-    pub fn new() -> Toolkit<F, V, Grad> {
+use crate::{Gradient, InitFlow, Label, NDArrayLabelBackward, NDArrayMark, ToolComponent, Toolkit};
+
+impl<Array, Grad> Toolkit<Array, Grad, Label<Array>> {
+    pub fn new() -> Toolkit<Array, Grad, Label<Array>> {
         Self {
             values: Vec::new(),
             gradients: Vec::new(),
@@ -9,7 +11,7 @@ impl<F, V, Grad> Toolkit<F, V, Grad> {
         }
     }
 
-    pub fn init_value(&mut self, value: V) -> InitFlow<F> {
+    pub fn init_value(&mut self, value: Array) -> InitFlow<Array> {
         self.values.push(value);
         InitFlow {
             value_idx: self.values.len() - 1,
@@ -17,19 +19,14 @@ impl<F, V, Grad> Toolkit<F, V, Grad> {
         }
     }
 
-    pub fn submit<C, FlowType>(&mut self, component: C) -> FlowType
+    pub fn backward(&mut self)
     where
-        F: Copy,
-        C: ToolComponent<F, V, FlowType>,
-        Grad: Gradient,
+        Array: NDArrayMark,
+        Label<Array>: NDArrayLabelBackward<Array, Grad>,
+        for<'a> Grad: AddAssign<&'a Grad>,
     {
-        let value = component.tool_forward(&self.values);
-        let shape = C::shape(&value);
-        self.values.push(value);
-        self.gradients.push(Grad::zeros(shape));
-
-        let flow = component.into_flow(self.values.len() - 1, self.gradients.len() - 1);
-        self.flows.push(flow);
-        C::copy_label_to_flow(flow)
+        for label in self.flows.iter().rev() {
+            label.backward(&self.values, &mut self.gradients);
+        }
     }
 }

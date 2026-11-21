@@ -1,9 +1,9 @@
-use ndarray::ArrayD;
+// use ndarray::ArrayD;
 use std::ops::{Add, AddAssign};
 
-pub fn add_forward<Rhs, Lhs, F>(rhs: &Rhs, lhs: &Lhs) -> ArrayD<F>
+pub fn add_forward<Rhs, Lhs, Array>(rhs: &Rhs, lhs: &Lhs) -> Array
 where
-    for<'a> &'a Rhs: Add<&'a Lhs, Output = ArrayD<F>>,
+    for<'a> &'a Rhs: Add<&'a Lhs, Output = Array>,
 {
     rhs.add(lhs)
 }

@@ -1,15 +1,16 @@
-use ndarray::ArrayD;
+use crate::{InitFlow, ToolFlow};
 
-use crate::{GetValue, InitFlow};
-
-impl<F> GetValue for InitFlow<F> {
-    type ReturnType = ArrayD<F>;
-    type ValueType = ArrayD<F>;
-    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ReturnType {
+impl<Array> ToolFlow for InitFlow<Array> {
+    type ValueType = Array;
+    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ValueType {
         &values[self.value_idx]
     }
 
     fn get_value_idx(&self) -> usize {
         self.value_idx
+    }
+
+    fn get_gradient_idx(&self) -> Option<usize> {
+        None
     }
 }
