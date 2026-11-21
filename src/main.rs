@@ -1,15 +1,23 @@
 use dl_toolkit_project::{AddTool, Label, Toolkit};
-use ndarray::Array2;
+use ndarray::{Array2, ArrayD, ArrayView2, ArrayViewD};
 
 fn main() {
-    let mut toolkit = Toolkit::<Array2<f32>, Array2<f32>, Label<Array2<f32>>>::new();
+    let mut toolkit = Toolkit::<
+        ArrayD<f32>,
+        ArrayD<f32>,
+        ArrayViewD<'_, f32>,
+        Label<ArrayD<f32>, ArrayViewD<f32>>,
+    >::new();
 
-    let init_1 = toolkit.init_value(Array2::<f32>::ones([2, 2]));
-    let init_2 = toolkit.init_value(Array2::<f32>::ones([2, 2]));
-    let init_3 = toolkit.init_value(Array2::<f32>::ones([2, 2]));
-    let init_4 = toolkit.init_value(Array2::<f32>::ones([2, 2]));
+    let array_1 = ArrayD::<f32>::ones(vec![2, 2]);
 
-    let add_flow_1 = toolkit.submit(AddTool::new(&init_1, &init_2));
+    let init_1 = toolkit.init_value(array_1.view());
+    let init_2 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
+    let init_3 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
+    let init_4 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
+
+    let a = AddTool::new(&init_1, &init_2);
+    let add_flow_1 = toolkit.submit(a);
     let add_flow_2 = toolkit.submit(AddTool::new(&init_3, &add_flow_1));
     let add_flow_3 = toolkit.submit(AddTool::new(&add_flow_2, &init_4));
 

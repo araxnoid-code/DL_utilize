@@ -4,17 +4,18 @@ use crate::{
 // use ndarray::ArrayD;
 use std::ops::{Add, AddAssign};
 
-impl<'t, Lhs, Rhs, Array> ToolComponent<Array, AddFlow<Array>> for AddTool<'t, Lhs, Rhs>
+impl<'t, Lhs, Rhs, Array, Ref> ToolComponent<Array, Ref, AddFlow<Array, Ref>>
+    for AddTool<'t, Lhs, Rhs>
 where
-    Lhs: ToolFlow<ValueType = Array>,
-    Rhs: ToolFlow<ValueType = Array>,
-    for<'a> &'a Lhs::ValueType: Add<&'a Rhs::ValueType, Output = Array>,
+    Lhs: ToolFlow<ValueType = Array, RefType = Ref>,
+    Rhs: ToolFlow<ValueType = Array, RefType = Ref>,
+    for<'a> &'a Lhs::ReturnType: Add<&'a Rhs::ReturnType, Output = Array>,
     Array: NDArrayGetShape,
 {
-    type LabelType = Label<Array>;
-    fn tool_forward(&self, values: &Vec<Array>) -> Array {
-        let lhs = self.lhs.get_value(values);
-        let rhs = self.rhs.get_value(values);
+    type LabelType = Label<Array, Ref>;
+    fn tool_forward(&self, values: &Vec<Array>, refs: &Vec<Ref>) -> Array {
+        let lhs = self.lhs.get_value(values, refs);
+        let rhs = self.rhs.get_value(values, refs);
         add_forward(lhs, rhs)
     }
 
@@ -33,14 +34,14 @@ where
         ))
     }
 
-    fn copy_label_to_flow(label: Self::LabelType) -> AddFlow<Array> {
+    fn copy_label_to_flow(label: Self::LabelType) -> AddFlow<Array, Ref> {
         match label {
             Label::Add(add_flow) => add_flow,
         }
     }
 }
 
-impl<Array> AddFlow<Array>
+impl<Array, Ref> AddFlow<Array, Ref>
 where
     Array: NDArrayMark,
 {
@@ -68,10 +69,16 @@ where
     }
 }
 
-impl<Array> ToolFlow for AddFlow<Array> {
+impl<Array, Ref> ToolFlow for AddFlow<Array, Ref> {
     type ValueType = Array;
+    type RefType = Ref;
+    type ReturnType = Array;
 
-    fn get_value<'a>(&'a self, values: &'a Vec<Self::ValueType>) -> &'a Self::ValueType {
+    fn get_value<'a>(
+        &'a self,
+        values: &'a Vec<Self::ValueType>,
+        _: &'a Vec<Self::RefType>,
+    ) -> &'a Self::ReturnType {
         &values[self.value_idx]
     }
 

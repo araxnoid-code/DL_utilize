@@ -9,12 +9,12 @@ where
     fn backward(&self, values: &Vec<Array>, gradients: &mut Vec<Option<Grad>>);
 }
 
-impl<Array, Grad> NDArrayLabelBackward<Array, Grad> for Label<Array>
+impl<Array, Ref, Grad> NDArrayLabelBackward<Array, Grad> for Label<Array, Ref>
 where
     Array: NDArrayMark,
     for<'a> Grad: AddAssign<&'a Grad>,
 {
-    fn backward(&self, values: &Vec<Array>, gradients: &mut Vec<Option<Grad>>) {
+    fn backward(&self, _: &Vec<Array>, gradients: &mut Vec<Option<Grad>>) {
         match self {
             Label::Add(add_flow) => {
                 add_flow.backward(gradients);

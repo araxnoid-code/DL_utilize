@@ -6,20 +6,13 @@ use crate::{
     Gradient, InitFlow, Label, NDArrayLabelBackward, NDArrayMark, ToolComponent, ToolFlow, Toolkit,
 };
 
-impl<Array, Grad> Toolkit<Array, Grad, Label<Array>> {
-    pub fn new() -> Toolkit<Array, Grad, Label<Array>> {
+impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
+    pub fn new() -> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
         Self {
             values: Vec::new(),
             gradients: Vec::new(),
+            refs: Vec::new(),
             flows: Vec::new(),
-        }
-    }
-
-    pub fn init_value(&mut self, value: Array) -> InitFlow<Array> {
-        self.values.push(value);
-        InitFlow {
-            value_idx: self.values.len() - 1,
-            _phantom: Default::default(),
         }
     }
 
@@ -37,7 +30,7 @@ impl<Array, Grad> Toolkit<Array, Grad, Label<Array>> {
     pub fn backward(&mut self)
     where
         Array: NDArrayMark,
-        Label<Array>: NDArrayLabelBackward<Array, Grad>,
+        Label<Array, Ref>: NDArrayLabelBackward<Array, Grad>,
         for<'a> Grad: AddAssign<&'a Grad>,
     {
         for label in self.flows.iter().rev() {

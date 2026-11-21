@@ -1,5 +1,5 @@
 mod get_shape;
 pub use get_shape::*;
 
-mod ndarray_mark;
-pub use ndarray_mark::*;
+mod ndarray_util;
+pub use ndarray_util::*;

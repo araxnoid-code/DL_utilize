@@ -1,16 +1,22 @@
-use std::marker::PhantomData;
-
 use num_traits::{Float, One};
 
-use crate::{CopyLabel, Gradient, ToolComponent, ToolFlow};
+use crate::{CopyLabel, Gradient, InitFlow, InitTool, ToolComponent, ToolFlow};
 
-pub struct Toolkit<V, Grad, Label> {
+pub struct Toolkit<V, Grad, Ref, Label> {
     pub(crate) values: Vec<V>,
     pub(crate) gradients: Vec<Option<Grad>>,
+    pub(crate) refs: Vec<Ref>,
     pub(crate) flows: Vec<Label>,
 }
 
-impl<V, Grad, Label> Toolkit<V, Grad, Label> {
+impl<V, Grad, Ref, Label> Toolkit<V, Grad, Ref, Label> {
+    pub fn init_value<InitValue, Flow>(&mut self, value: InitValue) -> Flow
+    where
+        InitValue: InitTool<V, Ref, Flow>,
+    {
+        value.push(&mut self.values, &mut self.refs)
+    }
+
     pub fn get_value<Flow>(&self, flow: &Flow) -> Option<&V>
     where
         Flow: ToolFlow,
@@ -45,11 +51,11 @@ impl<V, Grad, Label> Toolkit<V, Grad, Label> {
 
     pub fn submit<C, FlowType>(&mut self, component: C) -> FlowType
     where
-        C: ToolComponent<V, FlowType, LabelType = Label>,
+        C: ToolComponent<V, Ref, FlowType, LabelType = Label>,
         Grad: Gradient,
         Label: CopyLabel,
     {
-        let value = component.tool_forward(&self.values);
+        let value = component.tool_forward(&self.values, &self.refs);
         let shape = C::shape(&value);
         self.values.push(value);
         self.gradients.push(Some(Grad::zeros(shape)));
