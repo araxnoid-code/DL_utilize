@@ -1,10 +1,10 @@
 [package]
-name = "dl_toolkit_project"
+name = "dl_utilize"
 version = "0.0.1"
 edition = "2024"
 
 [lib]
-path = "src/dl_toolkit/mod.rs"
+path = "src/dl_utilize/mod.rs"
 
 [dependencies]
 ndarray = "0.17.2"

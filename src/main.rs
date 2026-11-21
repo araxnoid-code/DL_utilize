@@ -1,5 +1,5 @@
-use dl_toolkit_project::{AddTool, Label, Toolkit};
-use ndarray::{Array2, ArrayD, ArrayView2, ArrayViewD};
+use dl_utilize::{AddTool, Label, Toolkit};
+use ndarray::{ArrayD, ArrayViewD};
 
 fn main() {
     let mut toolkit = Toolkit::<
