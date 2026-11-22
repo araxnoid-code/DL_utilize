@@ -1,6 +1,6 @@
 use std::{hint::black_box, ops::AddAssign, time};
 
-use dl_utilize::{AddTool, Label, Toolkit, sub_backward};
+use dl_utilize::{AddTool, Label, Toolkit, mul_backward, mul_forward, sub_backward};
 use ndarray::{ArrayD, ArrayViewD, Zip};
 
 fn main() {
@@ -27,17 +27,31 @@ fn main() {
     //     println!("{}", toolkit.get_gradient(&add_flow_1).unwrap());
     //     println!("{}", toolkit.get_gradient(&add_flow_2).unwrap());
 
-    let mut a = ArrayD::<f32>::ones(vec![20]);
+    let a = ArrayD::<f32>::ones(vec![20]);
     let mut b = ArrayD::<f32>::ones(vec![20]);
 
-    let mut c = ArrayD::<f32>::ones(vec![20]);
+    mul_forward(&a, &b);
+    mul_forward(&a.view(), &b);
+    mul_forward(&a.view(), &b.view());
+    mul_forward(&a.view(), &b.view_mut());
 
-    Zip::from(&mut a).and(&b).for_each(|a, b| {
-        a.add_assign(b);
-    });
+    let a = ArrayD::<f32>::ones(vec![20]);
+    let mut a_grad = ArrayD::<f32>::ones(vec![20]);
+    let b = ArrayD::<f32>::ones(vec![20]);
+    let mut b_grad = ArrayD::<f32>::ones(vec![20]);
+    let grad = ArrayD::<f32>::ones(vec![20]);
 
-    // sub_backward::<_, _, _, _, _, _>(Some(&mut a), Some(&mut b), &c.view_mut());
-    sub_backward(Some(&mut a), Some(&mut b.view_mut()), &c.view());
+    mul_backward(&a, Some(&mut a_grad), &b, Some(&mut b_grad), &grad);
+
+    mul_backward(
+        &a.view(),
+        Some(&mut a_grad),
+        &b,
+        Some(&mut b_grad.view_mut()),
+        &grad.view(),
+    );
+
+    // mul_backward(Some(&mut a), Some(&mut b.view_mut()), &c.view());
 
     // f(&mut 10, 20);
 }
