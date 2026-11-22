@@ -14,7 +14,7 @@ impl<'a, Lhs, Rhs> AddTool<'a, Lhs, Rhs> {
 
 /// # AddFlow
 #[derive(Clone, Copy)]
-pub struct AddFlow<Array, Ref> {
+pub struct AddFlow {
     pub lhs_idx: usize,
     pub lhs_grad_idx: Option<usize>,
     pub rhs_idx: usize,
@@ -22,10 +22,10 @@ pub struct AddFlow<Array, Ref> {
 
     pub value_idx: usize,
     pub grad_idx: Option<usize>,
-    pub(crate) _phantom: PhantomData<(Array, Ref)>,
+    // pub(crate) _phantom: PhantomData<(Array, Ref)>,
 }
 
-impl<Array, Ref> AddFlow<Array, Ref> {
+impl AddFlow {
     pub fn new(
         lhs_idx: usize,
         lhs_grad_idx: Option<usize>,
@@ -33,7 +33,7 @@ impl<Array, Ref> AddFlow<Array, Ref> {
         rhs_grad_idx: Option<usize>,
         value_idx: usize,
         grad_idx: Option<usize>,
-    ) -> AddFlow<Array, Ref> {
+    ) -> AddFlow {
         Self {
             lhs_idx,
             lhs_grad_idx,
@@ -41,11 +41,11 @@ impl<Array, Ref> AddFlow<Array, Ref> {
             rhs_grad_idx,
             value_idx,
             grad_idx,
-            _phantom: Default::default(),
+            // _phantom: Default::default(),
         }
     }
 
-    pub fn _copy(&self) -> AddFlow<Array, Ref> {
+    pub fn _copy(&self) -> AddFlow {
         AddFlow {
             value_idx: self.value_idx,
 
@@ -56,7 +56,7 @@ impl<Array, Ref> AddFlow<Array, Ref> {
             rhs_grad_idx: self.rhs_grad_idx,
 
             grad_idx: self.grad_idx,
-            _phantom: Default::default(),
+            // _phantom: Default::default(),
         }
     }
 }

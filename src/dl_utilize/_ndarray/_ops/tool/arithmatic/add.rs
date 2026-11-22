@@ -4,15 +4,14 @@ use crate::{
 // use ndarray::ArrayD;
 use std::ops::{Add, AddAssign};
 
-impl<'t, Lhs, Rhs, Array, Ref> ToolComponent<Array, Ref, AddFlow<Array, Ref>>
-    for AddTool<'t, Lhs, Rhs>
+impl<'t, Lhs, Rhs, Array, Ref> ToolComponent<Array, Ref, AddFlow> for AddTool<'t, Lhs, Rhs>
 where
-    Lhs: ToolFlow<ValueType = Array, RefType = Ref>,
-    Rhs: ToolFlow<ValueType = Array, RefType = Ref>,
+    Lhs: ToolFlow<Array, Ref>,
+    Rhs: ToolFlow<Array, Ref>,
     for<'a> &'a Lhs::ReturnType: Add<&'a Rhs::ReturnType, Output = Array>,
     Array: NDArrayGetShape,
 {
-    type LabelType = Label<Array, Ref>;
+    type LabelType = Label;
     fn tool_forward(&self, values: &Vec<Array>, refs: &Vec<Ref>) -> Array {
         let lhs = self.lhs.get_value(values, refs);
         let rhs = self.rhs.get_value(values, refs);
@@ -34,17 +33,14 @@ where
         ))
     }
 
-    fn copy_label_to_flow(label: Self::LabelType) -> AddFlow<Array, Ref> {
+    fn copy_label_to_flow(label: Self::LabelType) -> AddFlow {
         match label {
             Label::Add(add_flow) => add_flow,
         }
     }
 }
 
-impl<Array, Ref> AddFlow<Array, Ref>
-where
-    Array: NDArrayMark,
-{
+impl AddFlow {
     pub fn backward<Grad>(&self, gradients: &mut Vec<Option<Grad>>)
     where
         for<'a> Grad: AddAssign<&'a Grad>,
@@ -69,16 +65,10 @@ where
     }
 }
 
-impl<Array, Ref> ToolFlow for AddFlow<Array, Ref> {
-    type ValueType = Array;
-    type RefType = Ref;
+impl<Array, Ref> ToolFlow<Array, Ref> for AddFlow {
     type ReturnType = Array;
 
-    fn get_value<'a>(
-        &'a self,
-        values: &'a Vec<Self::ValueType>,
-        _: &'a Vec<Self::RefType>,
-    ) -> &'a Self::ReturnType {
+    fn get_value<'a>(&'a self, values: &'a Vec<Array>, _: &'a Vec<Ref>) -> &'a Self::ReturnType {
         &values[self.value_idx]
     }
 

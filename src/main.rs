@@ -2,12 +2,7 @@ use dl_utilize::{AddTool, Label, Toolkit};
 use ndarray::{ArrayD, ArrayViewD};
 
 fn main() {
-    let mut toolkit = Toolkit::<
-        ArrayD<f32>,
-        ArrayD<f32>,
-        ArrayViewD<'_, f32>,
-        Label<ArrayD<f32>, ArrayViewD<f32>>,
-    >::new();
+    let mut toolkit = Toolkit::<ArrayD<f32>, ArrayD<f32>, ArrayViewD<'_, f32>, Label>::new();
 
     let array_1 = ArrayD::<f32>::ones(vec![2, 2]);
 

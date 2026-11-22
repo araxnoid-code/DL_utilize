@@ -9,7 +9,7 @@ where
     fn backward(&self, values: &Vec<Array>, gradients: &mut Vec<Option<Grad>>);
 }
 
-impl<Array, Ref, Grad> NDArrayLabelBackward<Array, Grad> for Label<Array, Ref>
+impl<Array, Grad> NDArrayLabelBackward<Array, Grad> for Label
 where
     Array: NDArrayMark,
     for<'a> Grad: AddAssign<&'a Grad>,

@@ -6,8 +6,8 @@ use crate::{
     Gradient, InitFlow, Label, NDArrayLabelBackward, NDArrayMark, ToolComponent, ToolFlow, Toolkit,
 };
 
-impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
-    pub fn new() -> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
+impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label> {
+    pub fn new() -> Toolkit<Array, Grad, Ref, Label> {
         Self {
             values: Vec::new(),
             gradients: Vec::new(),
@@ -19,7 +19,7 @@ impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
     pub fn backward_from<Flow>(&mut self, flow: &Flow)
     where
         Array: NDArrayMark,
-        Flow: ToolFlow,
+        Flow: ToolFlow<Array, Ref>,
         for<'a> Grad: Gradient + AddAssign<&'a Grad>,
         Grad::F: Float,
     {
@@ -30,7 +30,7 @@ impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label<Array, Ref>> {
     pub fn backward(&mut self)
     where
         Array: NDArrayMark,
-        Label<Array, Ref>: NDArrayLabelBackward<Array, Grad>,
+        Label: NDArrayLabelBackward<Array, Grad>,
         for<'a> Grad: AddAssign<&'a Grad>,
     {
         for label in self.flows.iter().rev() {
