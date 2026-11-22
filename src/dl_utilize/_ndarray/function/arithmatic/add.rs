@@ -1,4 +1,3 @@
-// use ndarray::ArrayD;
 use std::ops::{Add, AddAssign};
 
 pub fn add_forward<Rhs, Lhs, Array>(rhs: &Rhs, lhs: &Lhs) -> Array
@@ -24,5 +23,3 @@ pub fn add_backward<Rhs, Lhs, Grad>(
         lhs_grad.add_assign(gradient);
     }
 }
-
-//
