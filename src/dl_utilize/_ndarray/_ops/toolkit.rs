@@ -14,21 +14,22 @@ impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref> {
         }
     }
 
-    pub fn backward_from<Flow>(&mut self, flow: &Flow)
+    pub fn backward_from<Flow, Dim>(&mut self, flow: &Flow)
     where
         Array: NDArrayMark,
         Flow: ToolFlow<Array, Ref>,
         for<'a> Grad: Gradient + AddAssign<&'a Grad>,
         Grad::F: Float,
+        Label: NDArrayLabelBackward<Array, Grad, Dim>,
     {
         self.grad_into_ones(flow);
-        self.backward();
+        self.backward::<Dim>();
     }
 
-    pub fn backward(&mut self)
+    pub fn backward<Dim>(&mut self)
     where
         Array: NDArrayMark,
-        Label: NDArrayLabelBackward<Array, Grad>,
+        Label: NDArrayLabelBackward<Array, Grad, Dim>,
         for<'a> Grad: AddAssign<&'a Grad>,
     {
         for label in self.label_flows.iter().rev() {

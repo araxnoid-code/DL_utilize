@@ -1,6 +1,5 @@
+use crate::{Gradient, InitTool, Label, ToolComponent, ToolFlow};
 use num_traits::{Float, One};
-
-use crate::{CopyLabel, Gradient, InitTool, Label, ToolComponent, ToolFlow};
 
 pub struct Toolkit<V, Grad, Ref> {
     pub(crate) values: Vec<V>,

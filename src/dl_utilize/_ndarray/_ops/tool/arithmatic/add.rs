@@ -1,7 +1,4 @@
-use crate::{
-    AddFlow, AddTool, Label, NDArrayGetShape, NDArrayMark, ToolComponent, ToolFlow, add_forward,
-};
-// use ndarray::ArrayD;
+use crate::{AddFlow, AddTool, Label, NDArrayGetShape, ToolComponent, ToolFlow, add_forward};
 use std::ops::{Add, AddAssign};
 
 impl<'t, Lhs, Rhs, Array, Ref> ToolComponent<Array, Ref, AddFlow> for AddTool<'t, Lhs, Rhs>
