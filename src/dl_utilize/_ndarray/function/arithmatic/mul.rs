@@ -20,8 +20,6 @@ pub fn mul_backward<F, Rhs, Lhs, RhsGrad, LhsGrad, Grad, Dim>(
     for<'a> &'a Lhs: IntoNdProducer<Dim = Dim, Item = &'a F>,
     // ITEM
     for<'a> &'a F: Mul<&'a F, Output = F>,
-    for<'a> &'a F: Mul<&'a F, Output = F>,
-    for<'a> F: AddAssign<F>,
     for<'a> F: AddAssign<F>,
     // GRADIENT
     for<'a> &'a mut LhsGrad: IntoNdProducer<Dim = Dim, Item = &'a mut F>,
