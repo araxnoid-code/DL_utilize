@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 /// # AddTool
 pub struct AddTool<'a, Lhs, Rhs> {
     pub lhs: &'a Lhs,
@@ -22,7 +20,6 @@ pub struct AddFlow {
 
     pub value_idx: usize,
     pub grad_idx: Option<usize>,
-    // pub(crate) _phantom: PhantomData<(Array, Ref)>,
 }
 
 impl AddFlow {
@@ -41,7 +38,6 @@ impl AddFlow {
             rhs_grad_idx,
             value_idx,
             grad_idx,
-            // _phantom: Default::default(),
         }
     }
 
@@ -56,7 +52,6 @@ impl AddFlow {
             rhs_grad_idx: self.rhs_grad_idx,
 
             grad_idx: self.grad_idx,
-            // _phantom: Default::default(),
         }
     }
 }

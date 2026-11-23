@@ -1,18 +1,16 @@
-use std::{marker::PhantomData, ops::AddAssign};
+use std::ops::AddAssign;
 
-use num_traits::{Float, One};
+use num_traits::Float;
 
-use crate::{
-    Gradient, InitFlow, Label, NDArrayLabelBackward, NDArrayMark, ToolComponent, ToolFlow, Toolkit,
-};
+use crate::{Gradient, Label, NDArrayLabelBackward, NDArrayMark, ToolFlow, Toolkit};
 
-impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label> {
-    pub fn new() -> Toolkit<Array, Grad, Ref, Label> {
+impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref> {
+    pub fn new() -> Toolkit<Array, Grad, Ref> {
         Self {
             values: Vec::new(),
             gradients: Vec::new(),
             refs: Vec::new(),
-            flows: Vec::new(),
+            label_flows: Vec::new(),
         }
     }
 
@@ -33,7 +31,7 @@ impl<Array, Grad, Ref> Toolkit<Array, Grad, Ref, Label> {
         Label: NDArrayLabelBackward<Array, Grad>,
         for<'a> Grad: AddAssign<&'a Grad>,
     {
-        for label in self.flows.iter().rev() {
+        for label in self.label_flows.iter().rev() {
             label.backward(&self.values, &mut self.gradients);
         }
     }

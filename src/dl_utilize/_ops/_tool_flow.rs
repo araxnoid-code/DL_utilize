@@ -1,3 +1,5 @@
+use crate::Label;
+
 pub trait ToolFlow<ArrayType, RefType> {
     type ReturnType;
 
@@ -8,4 +10,5 @@ pub trait ToolFlow<ArrayType, RefType> {
     ) -> &'a Self::ReturnType;
     fn get_value_idx(&self) -> usize;
     fn get_gradient_idx(&self) -> Option<usize>;
+    fn to_label(&self) -> Label;
 }

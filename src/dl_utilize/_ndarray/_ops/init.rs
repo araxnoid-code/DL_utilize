@@ -15,6 +15,10 @@ impl<Array, Ref> ToolFlow<Array, Ref> for InitFlow {
     fn get_gradient_idx(&self) -> Option<usize> {
         None
     }
+
+    fn to_label(&self) -> crate::Label {
+        panic!()
+    }
 }
 
 impl<Array, Ref> ToolFlow<Array, Ref> for InitViewFlow {
@@ -29,6 +33,10 @@ impl<Array, Ref> ToolFlow<Array, Ref> for InitViewFlow {
 
     fn get_gradient_idx(&self) -> Option<usize> {
         None
+    }
+
+    fn to_label(&self) -> crate::Label {
+        panic!()
     }
 }
 

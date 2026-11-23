@@ -22,21 +22,15 @@ where
         out.get_shape().to_vec()
     }
 
-    fn into_flow(self, value_idx: usize, grad_idx: Option<usize>) -> Self::LabelType {
-        Label::Add(AddFlow::new(
+    fn into_flow(self, value_idx: usize, grad_idx: Option<usize>) -> AddFlow {
+        AddFlow::new(
             self.lhs.get_value_idx(),
             self.lhs.get_gradient_idx(),
             self.rhs.get_value_idx(),
             self.rhs.get_gradient_idx(),
             value_idx,
             grad_idx,
-        ))
-    }
-
-    fn copy_label_to_flow(label: Self::LabelType) -> AddFlow {
-        match label {
-            Label::Add(add_flow) => add_flow,
-        }
+        )
     }
 }
 
@@ -78,5 +72,9 @@ impl<Array, Ref> ToolFlow<Array, Ref> for AddFlow {
 
     fn get_gradient_idx(&self) -> Option<usize> {
         self.grad_idx
+    }
+
+    fn to_label(&self) -> Label {
+        Label::Add(*self)
     }
 }

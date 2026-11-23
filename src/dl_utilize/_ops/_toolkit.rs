@@ -1,15 +1,15 @@
 use num_traits::{Float, One};
 
-use crate::{CopyLabel, Gradient, InitTool, ToolComponent, ToolFlow};
+use crate::{CopyLabel, Gradient, InitTool, Label, ToolComponent, ToolFlow};
 
-pub struct Toolkit<V, Grad, Ref, Label> {
+pub struct Toolkit<V, Grad, Ref> {
     pub(crate) values: Vec<V>,
     pub(crate) gradients: Vec<Option<Grad>>,
     pub(crate) refs: Vec<Ref>,
-    pub(crate) flows: Vec<Label>,
+    pub(crate) label_flows: Vec<Label>,
 }
 
-impl<Arr, Grad, Ref, Label> Toolkit<Arr, Grad, Ref, Label> {
+impl<Arr, Grad, Ref> Toolkit<Arr, Grad, Ref> {
     pub fn init_value<InitValue, Flow>(&mut self, value: InitValue) -> Flow
     where
         InitValue: InitTool<Arr, Ref, Flow>,
@@ -53,7 +53,7 @@ impl<Arr, Grad, Ref, Label> Toolkit<Arr, Grad, Ref, Label> {
     where
         C: ToolComponent<Arr, Ref, FlowType, LabelType = Label>,
         Grad: Gradient,
-        Label: CopyLabel,
+        FlowType: ToolFlow<Arr, Ref>,
     {
         let value = component.tool_forward(&self.values, &self.refs);
         let shape = C::shape(&value);
@@ -61,7 +61,7 @@ impl<Arr, Grad, Ref, Label> Toolkit<Arr, Grad, Ref, Label> {
         self.gradients.push(Some(Grad::zeros(shape)));
 
         let flow = component.into_flow(self.values.len() - 1, Some(self.gradients.len() - 1));
-        self.flows.push(flow.copy_label());
-        C::copy_label_to_flow(flow)
+        self.label_flows.push(flow.to_label());
+        flow
     }
 }
