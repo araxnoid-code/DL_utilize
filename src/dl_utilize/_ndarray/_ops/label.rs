@@ -5,30 +5,30 @@ use num_traits::Float;
 
 use crate::{Gradient, Label, NDArrayMark};
 
-pub trait NDArrayLabelBackward<Array, Grad, Dim>
+pub trait NDArrayLabelBackward<A, R, G, Dim>
 where
-    Array: NDArrayMark,
+    A: NDArrayMark,
 {
-    fn backward(&self, values: &Vec<Array>, gradients: &mut Vec<Option<Grad>>);
+    fn backward(&self, values: &Vec<A>, refs: &Vec<R>, gradients: &mut Vec<Option<G>>);
 }
 
-impl<Array, Grad, Dim> NDArrayLabelBackward<Array, Grad, Dim> for Label
+impl<A, R, G, Dim> NDArrayLabelBackward<A, R, G, Dim> for Label
 where
-    for<'a> &'a mut Grad: IntoNdProducer<Dim = Dim, Item = &'a mut Grad::F>,
-    for<'a> &'a Grad: IntoNdProducer<Dim = Dim, Item = &'a Grad::F>,
-    for<'a> Grad: AddAssign<&'a Grad>,
-    Grad: AddAssign<Grad::F> + Gradient,
-    Grad::F: Float + AddAssign<Grad::F>,
-    Array: NDArrayMark,
+    for<'a> &'a mut G: IntoNdProducer<Dim = Dim, Item = &'a mut G::F>,
+    for<'a> &'a G: IntoNdProducer<Dim = Dim, Item = &'a G::F>,
+    for<'a> G: AddAssign<&'a G>,
+    G: AddAssign<G::F> + Gradient,
+    G::F: Float + AddAssign<G::F>,
+    A: NDArrayMark,
     Dim: Dimension,
 {
-    fn backward(&self, _: &Vec<Array>, gradients: &mut Vec<Option<Grad>>) {
+    fn backward(&self, values: &Vec<A>, refs: &Vec<R>, gradients: &mut Vec<Option<G>>) {
         match self {
             Label::Add(add_flow) => {
                 add_flow.backward::<_>(gradients);
             }
             Label::Sub(sub_flow) => {
-                sub_flow.backward::<Grad, Dim>(gradients);
+                sub_flow.backward::<G, Dim>(gradients);
             }
         }
     }

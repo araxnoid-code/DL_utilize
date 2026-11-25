@@ -1,14 +1,14 @@
 use crate::{Gradient, InitTool, Label, ToolComponent, ToolFlow};
 use num_traits::{Float, One};
 
-pub struct Toolkit<V, Grad, Ref> {
+pub struct Toolkit<V, Ref, Grad> {
     pub(crate) values: Vec<V>,
     pub(crate) gradients: Vec<Option<Grad>>,
     pub(crate) refs: Vec<Ref>,
     pub(crate) label_flows: Vec<Label>,
 }
 
-impl<Arr, Grad, Ref> Toolkit<Arr, Grad, Ref> {
+impl<Arr, Ref, Grad> Toolkit<Arr, Ref, Grad> {
     pub fn init_value<InitValue, Flow>(&mut self, value: InitValue) -> Flow
     where
         InitValue: InitTool<Arr, Ref, Flow>,
@@ -16,12 +16,12 @@ impl<Arr, Grad, Ref> Toolkit<Arr, Grad, Ref> {
         value.push(&mut self.values, &mut self.refs)
     }
 
-    pub fn get_value<Flow>(&self, flow: &Flow) -> Option<&Arr>
-    where
-        Flow: ToolFlow<Arr, Ref>,
-    {
-        self.values.get(flow.get_value_idx())
-    }
+    // pub fn get_value<Flow>(&self, flow: &Flow) -> Option<&Arr>
+    // where
+    //     Flow: ToolFlow<Arr, Ref>,
+    // {
+    //     self.values.get(flow.get_value_idx())
+    // }
 
     pub fn grad_into_ones<Flow>(&mut self, flow: &Flow)
     where

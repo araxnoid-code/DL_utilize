@@ -1,11 +1,11 @@
 use ndarray::{Dimension, IntoNdProducer, Zip};
 use std::ops::{AddAssign, Mul};
 
-pub fn mul_forward<Rhs, Lhs, Array>(rhs: &Rhs, lhs: &Lhs) -> Array
+pub fn mul_forward<Rhs, Lhs, Array>(lhs: &Rhs, rhs: &Lhs) -> Array
 where
     for<'a> &'a Rhs: Mul<&'a Lhs, Output = Array>,
 {
-    rhs.mul(lhs)
+    lhs.mul(rhs)
 }
 
 pub fn mul_backward<F, Rhs, Lhs, RhsGrad, LhsGrad, Grad, Dim>(
