@@ -14,3 +14,10 @@ where
 {
     grads[idx].as_mut().unwrap().fill_ones();
 }
+
+pub fn fill_to_grad<Grad, F>(grads: &mut Vec<Option<Grad>>, idx: usize, x: F)
+where
+    Grad: Gradients<F = F>,
+{
+    grads[idx].as_mut().unwrap().fill(x);
+}

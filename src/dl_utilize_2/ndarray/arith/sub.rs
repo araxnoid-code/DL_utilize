@@ -11,8 +11,8 @@ impl<'a, LI, RI, Own> SubTool<'a, LI, RI, Own> {
         grads: &mut Vec<Option<Own>>,
     ) -> SubTool<'a, LI, RI, Own>
     where
-        Lhs: ToolFLow<Own = LI>,
-        Rhs: ToolFLow<Own = RI>,
+        Lhs: ToolFLow<ValueType = LI>,
+        Rhs: ToolFLow<ValueType = RI>,
         Own: Gradients<Out = Own> + NDArrayGetShape,
         for<'b> &'b LI: Sub<&'b RI, Output = Own>,
     {
@@ -38,7 +38,7 @@ where
     Lhs: ToolFLow,
     Rhs: ToolFLow,
 {
-    type Own = Own;
+    type ValueType = Own;
 
     fn get_value<'a>(&'a self) -> &'a Own {
         &self.value

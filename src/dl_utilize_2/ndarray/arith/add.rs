@@ -8,8 +8,8 @@ impl<'a, LI, RI, Own> AddTool<'a, LI, RI, Own> {
         grads: &mut Vec<Option<Own>>,
     ) -> AddTool<'a, LI, RI, Own>
     where
-        Lhs: ToolFLow<Own = LI>,
-        Rhs: ToolFLow<Own = RI>,
+        Lhs: ToolFLow<ValueType = LI>,
+        Rhs: ToolFLow<ValueType = RI>,
         Own: Gradients<Out = Own> + NDArrayGetShape,
         for<'b> &'b LI: Add<&'b RI, Output = Own>,
     {
@@ -36,7 +36,7 @@ where
     LI: ToolFLow,
     RI: ToolFLow,
 {
-    type Own = Own;
+    type ValueType = Own;
 
     fn get_value<'a>(&'a self) -> &'a Own {
         &self.value

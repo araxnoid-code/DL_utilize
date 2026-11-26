@@ -2,7 +2,7 @@ use crate::ToolFLow;
 use ndarray::{ArrayD, ArrayViewD};
 
 impl<'v, F> ToolFLow for ArrayViewD<'v, F> {
-    type Own = ArrayViewD<'v, F>;
+    type ValueType = ArrayViewD<'v, F>;
 
     fn get_value<'a>(&'a self) -> &'a ArrayViewD<'v, F> {
         self
@@ -13,7 +13,7 @@ impl<'v, F> ToolFLow for ArrayViewD<'v, F> {
 }
 
 impl<F> ToolFLow for ArrayD<F> {
-    type Own = ArrayD<F>;
+    type ValueType = ArrayD<F>;
 
     fn get_value<'a>(&'a self) -> &'a ArrayD<F> {
         self

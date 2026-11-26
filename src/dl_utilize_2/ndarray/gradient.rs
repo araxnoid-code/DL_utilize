@@ -6,6 +6,7 @@ impl<F> Gradients for ArrayD<F>
 where
     F: Clone + Float,
 {
+    type F = F;
     type Out = ArrayD<F>;
     fn zeros(shape: Vec<usize>) -> Self::Out {
         ArrayD::zeros(shape)
@@ -13,5 +14,9 @@ where
 
     fn fill_ones(&mut self) {
         ArrayRef::fill(self, F::one());
+    }
+
+    fn fill(&mut self, x: Self::F) {
+        ArrayRef::fill(self, x);
     }
 }
