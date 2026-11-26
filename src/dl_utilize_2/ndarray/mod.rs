@@ -12,3 +12,12 @@ pub use gradient::*;
 
 mod util;
 pub use util::*;
+
+mod function;
+pub use function::*;
+
+mod ndarray_util;
+pub use ndarray_util::*;
+
+mod backward;
+pub use backward::*;
