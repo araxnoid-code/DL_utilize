@@ -1,26 +1,18 @@
-use dl_utilize::{AddTool, SubTool, Toolkit};
-use ndarray::{ArrayD, ArrayViewD};
+use dl_utilize::{AddTool, SubTool, ToolFLow};
+use ndarray::ArrayD;
 
 fn main() {
-    let mut toolkit = Toolkit::<ArrayD<f32>, ArrayViewD<'_, f32>, ArrayD<f32>>::new();
+    let array_1 = ArrayD::<f32>::from_shape_vec(vec![2], vec![0., 0.]).unwrap();
+    let array_2 = ArrayD::<f32>::from_shape_vec(vec![2], vec![1., 1.]).unwrap();
+    let view_2 = array_2.view();
+    let array_3 = ArrayD::<f32>::from_shape_vec(vec![2], vec![2., 2.]).unwrap();
+    let array_4 = ArrayD::<f32>::from_shape_vec(vec![2], vec![3., 3.]).unwrap();
 
-    let array_1 = ArrayD::<f32>::ones(vec![2, 2]);
-    let init_1 = toolkit.init_value::<_, _>(array_1.view());
-    // let init_2 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
-    //     let init_3 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
-    //     let init_4 = toolkit.init_value(ArrayD::<f32>::ones(vec![2, 2]));
+    let mut grad = Vec::new();
+
+    let add = AddTool::new(&array_1, &view_2, &mut grad);
+    let sub = SubTool::new(&add, &array_3, &mut grad);
+
     //
-    //     let a = AddTool::new(&init_1, &init_2);
-    //     let add_flow_1 = toolkit.submit::<_, _>(a);
-    //     let add_flow_2 = toolkit.submit(AddTool::new(&init_3, &add_flow_1));
-    //     let add_flow_3 = toolkit.submit(SubTool::new(&add_flow_2, &init_4));
-    //
-    //     let add_flow_4 = toolkit.submit(AddTool::new(&add_flow_3, &add_flow_2));
-    //     let add_flow_5 = toolkit.submit(SubTool::new(&add_flow_4, &add_flow_1));
-    //
-    //     toolkit.backward_from(&add_flow_5);
-    //
-    //     println!("{}", toolkit.get_value(&add_flow_5).unwrap());
-    //     println!("{}", toolkit.get_gradient(&add_flow_1).unwrap());
-    //     println!("{}", toolkit.get_gradient(&add_flow_2).unwrap());
+    //     let add = AddTool::new(&sub, &array_4, &mut grad);
 }
