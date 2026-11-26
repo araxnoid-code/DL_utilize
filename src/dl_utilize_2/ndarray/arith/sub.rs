@@ -48,7 +48,7 @@ where
     }
 }
 
-impl<LI, RI, Own, Dim, F> NDArrayBackward<Own> for SubTool<'_, LI, RI, Own>
+impl<LI, RI, Own, Dim, F> Backward<Own> for SubTool<'_, LI, RI, Own>
 where
     Own: NDArrayMark,
     F: Float + AddAssign<F>,
@@ -63,9 +63,15 @@ where
             let mut rhs_grad = self.rhs_grad_idx.and_then(|idx| grads[idx].take());
             let grad = grads[grad_idx].as_ref().unwrap();
 
-            sub_backward(rhs_grad.as_mut(), lhs_grad.as_mut(), grad);
+            sub_backward(lhs_grad.as_mut(), rhs_grad.as_mut(), grad);
 
-            // lhs_grad.zip()
+            self.lhs_grad_idx
+                .zip(lhs_grad)
+                .and_then(|(idx, grad)| grads[idx].replace(grad));
+
+            self.rhs_grad_idx
+                .zip(rhs_grad)
+                .and_then(|(idx, grad)| grads[idx].replace(grad));
         }
     }
 }

@@ -9,24 +9,24 @@ where
     rhs.sub(lhs)
 }
 
-pub fn sub_backward<Rhs, Lhs, Grad, LhsItem, RhsItem, Dim>(
-    rhs_grad: Option<&mut Rhs>,
+pub fn sub_backward<F, Rhs, Lhs, Grad, Dim>(
     lhs_grad: Option<&mut Lhs>,
+    rhs_grad: Option<&mut Rhs>,
     gradient: &Grad,
 ) where
-    for<'a> Rhs: AddAssign<&'a Grad>,
-    for<'b> &'b mut Lhs: IntoNdProducer<Dim = Dim, Item = &'b mut LhsItem>,
-    for<'c> &'c Grad: IntoNdProducer<Dim = Dim, Item = &'c RhsItem>,
-    for<'e> &'e RhsItem: RefNumNeg,
-    for<'d> LhsItem: AddAssign<<&'d RhsItem as RefNumNeg>::Out>,
+    for<'a> Lhs: AddAssign<&'a Grad>,
+    for<'b> &'b mut Rhs: IntoNdProducer<Dim = Dim, Item = &'b mut F>,
+    for<'c> &'c Grad: IntoNdProducer<Dim = Dim, Item = &'c F>,
+    for<'e> &'e F: RefNumNeg,
+    for<'d> F: AddAssign<<&'d F as RefNumNeg>::Out>,
     Dim: Dimension,
 {
-    if let Some(rhs_grad) = rhs_grad {
-        rhs_grad.add_assign(gradient);
+    if let Some(lhs_grad) = lhs_grad {
+        lhs_grad.add_assign(gradient);
     }
 
-    if let Some(lhs_grad) = lhs_grad {
-        Zip::from(lhs_grad)
+    if let Some(rhs_grad) = rhs_grad {
+        Zip::from(rhs_grad)
             .and(gradient)
             .for_each(|lhs_grad, grad| {
                 lhs_grad.add_assign(grad.neg());

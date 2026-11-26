@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<LI, RI, Own> NDArrayBackward<Own> for AddTool<'_, LI, RI, Own>
+impl<LI, RI, Own> Backward<Own> for AddTool<'_, LI, RI, Own>
 where
     for<'a> Own: AddAssign<&'a Own>,
 {
